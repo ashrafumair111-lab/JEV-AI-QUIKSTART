@@ -1,0 +1,25 @@
+# =============================================================================
+#  JEV AI Quickstart - runtime dependencies
+#  Install with:   python -m pip install -r requirements.txt
+#  Requires:       Python >= 3.10  (typesafe-sdk and langchain both require 3.10+)
+# =============================================================================
+
+# --- Decision layer: Jev, the TypeSafe "System One" model --------------------
+# Typed decisions (Choice / Score / Noul) with calibrated probabilities.
+# Docs: https://docs.typesafe.ai/sdk/python
+typesafe-sdk>=0.1.0
+
+# --- Generative layer: drafts the prose around Jev's decisions ---------------
+# Jev decides *what* to do; an LLM only writes the text.
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-openai>=0.2.0
+openai>=1.30.0
+
+# --- Configuration, validation and terminal UX -------------------------------
+python-dotenv>=1.0.0
+pydantic>=2.6.0
+
+# Optional at runtime - the CLI degrades to plain `print` without it.
+# Kept here so a fresh clone gets the pretty version out of the box.
+rich>=13.0.0
