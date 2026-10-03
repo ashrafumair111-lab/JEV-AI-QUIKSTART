@@ -59,10 +59,10 @@ from src.writer import create_draft_writer
 __all__ = ["SAMPLE_TICKET", "build_parser", "main", "run_demo"]
 
 #: The ticket used when ``--ticket`` is not supplied. It is the same message the
-#: official Jev quickstart uses, so this output can be compared with that one.
+#: official Jev quickstart uses, so this output can be compared with  that one.
 SAMPLE_TICKET: Final[str] = (
-    "Hi, I've been trying to connect my Stripe account for 3 days and the "
-    "integration keeps failing. I'm losing sales. Please help ASAP."
+    "Hi, I've been trying to connect my Stripe account for 3 days and  the "
+    "integration keeps failing. I'm losing sales. Please help ASAP." 
 )
 
 EXIT_OK: Final[int] = 0
