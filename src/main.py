@@ -302,6 +302,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="use canned decisions; no keys and no network calls",
     )
     parser.add_argument(
+        "--dry-run",
+        dest="dry_run",
+        action="store_true",
+        help="show the routing decision only; skip drafting so no LLM tokens are spent",
+    )
+    parser.add_argument(
         "--json",
         action="store_true",
         help="print the run record as JSON instead of a human report",
@@ -338,7 +344,12 @@ def _jsonable(value: Any) -> Any:
     return value
 
 
-def run_demo(settings: Settings, ticket: str | None = None) -> TicketOutcome:
+def run_demo(
+    settings: Settings,
+    ticket: str | None = None,
+    *,
+    dry_run: bool = False,
+) -> TicketOutcome:
     """Run one ticket through the pipeline and return the full record.
 
     This is the programmatic entry point - handy in a notebook, a script or a
@@ -355,6 +366,8 @@ def run_demo(settings: Settings, ticket: str | None = None) -> TicketOutcome:
     Args:
         settings: Validated configuration.
         ticket: Customer message, or ``None`` to use :data:`SAMPLE_TICKET`.
+        dry_run: When True, only the routing decision is shown; no draft is
+            written and no LLM tokens are spent.
 
     Returns:
         The :class:`~src.pipeline.TicketOutcome` for that ticket.
@@ -364,7 +377,7 @@ def run_demo(settings: Settings, ticket: str | None = None) -> TicketOutcome:
         create_decision_engine(settings),
         create_draft_writer(settings),
     )
-    return pipeline.run(ticket or SAMPLE_TICKET)
+    return pipeline.run(ticket or SAMPLE_TICKET, dry_run=dry_run)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -420,7 +433,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     # 3. The actual work. Provider failures are translated, not dumped.
     try:
-        outcome = pipeline.run(ticket)
+        outcome = pipeline.run(ticket, dry_run=args.dry_run)
     except MissingDependencyError as exc:
         reporter.error(exc.message, exc.hint)
         return EXIT_MISSING_DEPENDENCY

@@ -147,7 +147,7 @@ class TriagePipeline:
         """Identifier of the draft writer in use."""
         return self._writer.name
 
-    def run(self, ticket: str) -> TicketOutcome:
+    def run(self, ticket: str, *, dry_run: bool = False) -> TicketOutcome:
         """Process one ticket end to end.
 
         Steps:
@@ -155,9 +155,13 @@ class TriagePipeline:
             2. Gate on confidence - code decides, not the model.
             3. Stop here for escalations: no draft, no LLM spend.
             4. Draft the reply, then have Jev check it before release.
+            5. When ``dry_run`` is ``True``, skip drafting entirely after
+               step 2 so the run costs zero LLM tokens.
 
         Args:
             ticket: The raw customer message.
+            dry_run: When True, only the routing decision is shown; no
+                draft is written and no LLM tokens are spent.
 
         Returns:
             The complete :class:`TicketOutcome` record.
@@ -179,6 +183,16 @@ class TriagePipeline:
                 decision=decision,
                 gate=gate,
                 status=OutcomeStatus.ESCALATED_TO_HUMAN,
+                elapsed_ms=(time.perf_counter() - started) * 1000.0,
+            )
+
+        if dry_run:
+            LOGGER.info("Dry run: routing resolved, skipping draft")
+            return TicketOutcome(
+                ticket=ticket,
+                decision=decision,
+                gate=gate,
+                status=OutcomeStatus.HELD_FOR_REVIEW,
                 elapsed_ms=(time.perf_counter() - started) * 1000.0,
             )
 
