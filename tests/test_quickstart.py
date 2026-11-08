@@ -351,6 +351,27 @@ class TriagePipelineTests(unittest.TestCase):
         outcome, _, _ = self._run(make_decision(confidence=0.95, urgency=0.90))
         self.assertEqual(outcome.gate.action, GateAction.DRAFT_WITH_REVIEW)
 
+    def test_estimated_cost_is_zero_for_escalated_ticket(self) -> None:
+        outcome, _, _ = self._run(make_decision(confidence=0.30))
+        self.assertEqual(outcome.estimated_cost_usd, 0.0)
+
+    def test_estimated_cost_counts_jov_input_tokens(self) -> None:
+        decision = make_decision(confidence=0.95)
+        decision = TriageDecision(
+            department=decision.department,
+            frustration=decision.frustration,
+            is_urgent=decision.is_urgent,
+            model="scripted",
+            source="scripted",
+            input_tokens=2500,
+        )
+        engine = ScriptedEngine(decision)
+        writer = RecordingWriter()
+        pipeline = TriagePipeline(self.settings, engine, writer)
+        outcome = pipeline.run(SAMPLE)
+        self.assertEqual(outcome.total_input_tokens, 2500)
+        self.assertEqual(outcome.estimated_cost_usd, 0.0025)
+
     def test_mid_confidence_drafts_but_holds(self) -> None:
         outcome, _, writer = self._run(make_decision(confidence=0.70))
         self.assertEqual(outcome.gate.action, GateAction.DRAFT_WITH_REVIEW)
