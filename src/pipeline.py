@@ -47,6 +47,11 @@ LOGGER: Final[logging.Logger] = logging.getLogger("jevai.pipeline")
 #: back for a human read. This is policy, so it lives in code - not in a prompt.
 _ESCALATE_FRUSTRATION: Final[float] = 2.0
 
+#: Flat rate used by :attr:`TicketOutcome.estimated_cost_usd` to translate
+#: Jev input tokens into an approximate USD cost. Real pricing varies by
+#: model; this is a ballpark figure for budgeting, not a bill.
+_JEV_PER_1K_TOKENS_USD: Final[float] = 0.001
+
 #: Urgency probability above which an auto-draft is still reviewed by a human.
 _REVIEW_URGENCY: Final[float] = 0.85
 
@@ -116,6 +121,14 @@ class TicketOutcome:
     def llm_calls(self) -> int:
         """How many generative-model calls this ticket actually caused."""
         return 1 if self.draft is not None else 0
+
+    @property
+    def estimated_cost_usd(self) -> float:
+        """Rough estimate of the Jev spend for this ticket, in USD.
+
+        Uses a flat per-1K-token rate; real pricing may vary by model.
+        """
+        return (self.total_input_tokens / 1000.0) * _JEV_PER_1K_TOKENS_USD
 
 
 class TriagePipeline:
